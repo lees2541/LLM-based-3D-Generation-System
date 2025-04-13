@@ -2,13 +2,13 @@ from langchain_core.output_parsers import PydanticOutputParser
 from pydantic import BaseModel, Field
 #from langchain_ollama import OllamaLLM
 from langchain_core.prompts import PromptTemplate
-#from dotenv import load_dotenv
+from dotenv import load_dotenv
 from typing import List
 from matplotlib import pyplot as plt
 from langchain_openai import ChatOpenAI
 import json
 ##test
-#load_dotenv()fd
+load_dotenv()
 
 # 모델 정의
 #model = OllamaLLM(model="llama3.2-vision")
@@ -64,7 +64,7 @@ def safe_model_invoke(query):
         return None
 
 
-query_text = ("I have provided you a grid space with scale of 100 * 100  representing a formal inside of a living room. Please set the objects of the room ")
+query_text = ("I have provided you a grid space with scale of 100 * 100 representing a formal inside of a classroom. Please set the objects of the room ")
 
 parsed_output = safe_model_invoke(query_text)
 
