@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from typing import List
 from matplotlib import pyplot as plt
 from langchain_openai import ChatOpenAI
-import json
+import son
 ##test
 load_dotenv()
 
