@@ -3,16 +3,16 @@ import os
 import imageio
 import matplotlib.pyplot as plt
 
-from test import name
+from hongdyu_gpt import name
 from shap_e.diffusion.sample import sample_latents
 from shap_e.diffusion.gaussian_diffusion import diffusion_from_config
 from shap_e.models.download import load_model, load_config
 from shap_e.util.notebooks import create_pan_cameras, decode_latent_images
 
 # gif_widget, display는 제거됨
-
+#nvidia-smi gpu 상태 확인
 # 장치 설정
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda:5' if torch.cuda.is_available() else 'cpu')
 
 # 모델 로드
 xm = load_model('transmitter', device=device)
