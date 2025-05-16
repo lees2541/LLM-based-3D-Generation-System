@@ -1,26 +1,30 @@
 from langchain_core.output_parsers import PydanticOutputParser
 from pydantic import BaseModel, Field
+#from langchain_ollama import OllamaLLM
 from langchain_core.prompts import PromptTemplate
 from dotenv import load_dotenv
 from typing import List
 from matplotlib import pyplot as plt
 from langchain_openai import ChatOpenAI
-import json
-
+import son
+##test
 load_dotenv()
 
 # 모델 정의
-model = ChatOpenAI(model="gpt-4o")
+#model = OllamaLLM(model="llama3.2-vision")
+#model = OllamaLLM(model="llama3.2")
+model = ChatOpenAI(model="gpt-4o",api_key="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")
 
 # pydantic 자료구조 정의
 class SetCoord(BaseModel):
     name: str = Field(description="name of the object")
-    X_coordinate: float = Field(description="X coordinate of the object within the given scale of a grid")
-    Y_coordinate: float = Field(description="Y coordinate of the object within the given scale of a grid")
-    description: str = Field(description="Description of the object based on the given context")
+    X_coordinate: float = Field(description="X coordinate of the object within given scale of a grid")
+    Y_coordinate: float = Field(description="Y coordinate of the object within given scale of a grid")
+
 
 class SetCoords(BaseModel):
-    objects: List[SetCoord] = Field(description="List of objects with their names, coordinates, and descriptions")
+    objects: List[SetCoord] = Field(description="List of objects with their names and coordinates")
+
 
 # 출력 파서 정의
 parser = PydanticOutputParser(pydantic_object=SetCoords)
@@ -29,18 +33,21 @@ format_instructions = parser.get_format_instructions()
 # 프롬프트를 더욱 구체적으로 개선
 prompt = PromptTemplate(
     template=(
-        "You are an interior designer.\n"
+        "You are a interior designer\n"
         "{format_instructions}\n"
-        "User Query: {query}\nPlease set the furniture evenly spread on a given scale of 2D grid."
-        " Doors should be included.\n"
-        "Please provide descriptions for the objects based on the environment and their purpose.\n"
-        "Respond strictly in JSON format, with the object names, coordinates, and descriptions."
+        "User Query: {query}\nPlease set the furniture evenly spread placed in the given scale of 2D grid."
+        "Doors should be included.\n"
+        "Please respond with multiple instances of common furniture (such as desks and chairs) if they typically occur "
+        "several times in a given place environment. Include various other given place items as well, making sure each "
+        "object has unique coordinates within a given scale of a grid. Provide the response strictly in JSON format."
     ),
     input_variables=["query"],
     partial_variables={"format_instructions": format_instructions},
 )
 
 chain = prompt | model
+
+
 
 def safe_model_invoke(query):
     output = chain.invoke({"query": query})
@@ -56,24 +63,16 @@ def safe_model_invoke(query):
         print("모델 원본 응답:", output)
         return None
 
-# 사용자 입력 텍스트
-query_text = (
-    "I have provided you a grid space with scale of 100 * 100 representing a formal inside of a classroom. "
-    "Please set the objects of the room and include descriptions for each object."
-)
+
+query_text = ("I have provided you a grid space with scale of 100 * 100 representing a formal inside of a classroom. Please set the objects of the room ")
 
 parsed_output = safe_model_invoke(query_text)
 
 # 정상적으로 데이터를 처리한 경우에만 시각화 진행
 if parsed_output is not None:
     object_names = [obj.name for obj in parsed_output.objects]
-    object_descriptions = [obj.description for obj in parsed_output.objects]
     x_coords = [obj.X_coordinate for obj in parsed_output.objects]
     y_coords = [obj.Y_coordinate for obj in parsed_output.objects]
-
-    # 콘솔 출력
-    for name, desc, x, y in zip(object_names, object_descriptions, x_coords, y_coords):
-        print(f"Object: {name}, Description: {desc}, Coordinates: ({x}, {y})")
 
     # 시각화
     plt.figure(figsize=(10, 10))
@@ -83,13 +82,13 @@ if parsed_output is not None:
     for i, name in enumerate(object_names):
         plt.text(x_coords[i] + 0.5, y_coords[i] + 0.5, name, fontsize=9)
 
-    plt.title("Classroom Objects on Grid")
+    plt.title("Cathedral Objects on Grid")
     plt.xlabel("X Coordinate")
     plt.ylabel("Y Coordinate")
     plt.grid(True, linestyle="--", alpha=0.5)
 
     plt.xlim(0, 100)
-    plt.ylim(0, 100)
+    plt.ylim(0, 60)
 
     plt.show()
 else:
