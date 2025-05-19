@@ -86,7 +86,7 @@ if parsed_output is not None:
     plt.xlabel("X Coordinate")
     plt.ylabel("Y Coordinate")
     plt.grid(True, linestyle="--", alpha=0.5)
-
+.
     plt.xlim(0, 30)
     plt.ylim(0, 30)
 
