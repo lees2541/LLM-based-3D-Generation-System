@@ -12,7 +12,7 @@ load_dotenv()
 # 모델 정의
 #model = OllamaLLM(model="llama3.2-vision")
 #model = OllamaLLM(model="llama3.2")
-model = ChatOpenAI(model="gpt-4o",api_key="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")
+model = ChatOpenAI(model="gpt-4o",api_key="")
 
 # pydantic 자료구조 정의
 class SetCoord(BaseModel):
