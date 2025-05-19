@@ -12,11 +12,12 @@ load_dotenv()
 # 모델 정의
 #model = OllamaLLM(model="llama3.2-vision")
 #model = OllamaLLM(model="llama3.2")
-model = ChatOpenAI(model="gpt-4o",api_key="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")
+model = ChatOpenAI(model="gpt-4o",api_key="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")
 
 # pydantic 자료구조 정의
 class SetCoord(BaseModel):
     name: str = Field(description="name of the object")
+    description: str = Field(description="a short detailed description of the object for 3D generation")
     X_coordinate: float = Field(description="X coordinate of the object within given scale of a grid")
     Y_coordinate: float = Field(description="Y coordinate of the object within given scale of a grid")
 
@@ -32,13 +33,11 @@ format_instructions = parser.get_format_instructions()
 # 프롬프트를 더욱 구체적으로 개선
 prompt = PromptTemplate(
     template=(
-        "You are a interior designer\n"
+        "You are an interior designer.\n"
         "{format_instructions}\n"
-        "User Query: {query}\nPlease set the furniture evenly spread placed in the given scale of 2D grid."
-        "Doors should be included.\n"
-        "Please respond with multiple instances of common furniture (such as desks and chairs) if they typically occur "
-        "several times in a given place environment. Include various other given place items as well, making sure each "
-        "object has unique coordinates within a given scale of a grid. Provide the response strictly in JSON format."
+        "User Query: {query}\n"
+        "Please spread the furniture and doors evenly across the space, coordinates, and a detailed description for each object. Your description must include outlook that is relevant to the place. You should mention the place in description. Don't include other objects, just a single object.Mention that this has simple features. You don't have to mention where it is in the place"
+        "The furnitures can be more than one and it's okay to overlap"
     ),
     input_variables=["query"],
     partial_variables={"format_instructions": format_instructions},
@@ -63,31 +62,33 @@ def safe_model_invoke(query):
         return None
 
 
-query_text = ("I have provided you a grid space with scale of 100 * 100 representing a formal inside of a restaurant. Please set the objects of the room ")
+query_text = ("I have provided you a grid space with scale of 30 * 30 representing a formal inside of a school. Please set the objects of the room ")
 
 parsed_output = safe_model_invoke(query_text)
 
 # 정상적으로 데이터를 처리한 경우에만 시각화 진행
 if parsed_output is not None:
     object_names = [obj.name for obj in parsed_output.objects]
+    object_descriptions = [obj.description for obj in parsed_output.objects]
     x_coords = [obj.X_coordinate for obj in parsed_output.objects]
     y_coords = [obj.Y_coordinate for obj in parsed_output.objects]
 
     # 시각화
-    plt.figure(figsize=(10, 10))
+    plt.figure(figsize=(30, 30))
     plt.scatter(x_coords, y_coords, marker='o', color='blue')
 
     # 각 포인트에 객체 이름 표시
-    for i, name in enumerate(object_names):
-        plt.text(x_coords[i] + 0.5, y_coords[i] + 0.5, name, fontsize=9)
+    for i, (name, description) in enumerate(zip(object_names, object_descriptions)):
+        text = f"{name}\n{description}"  # 이름과 설명을 줄바꿈으로 연결
+        plt.text(x_coords[i] + 0.5, y_coords[i] + 0.5, text, fontsize=9)
 
     plt.title("Cathedral Objects on Grid")
     plt.xlabel("X Coordinate")
     plt.ylabel("Y Coordinate")
     plt.grid(True, linestyle="--", alpha=0.5)
 
-    plt.xlim(0, 100)
-    plt.ylim(0, 60)
+    plt.xlim(0, 30)
+    plt.ylim(0, 30)
 
     plt.show()
 else:
