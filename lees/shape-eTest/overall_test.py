@@ -21,7 +21,7 @@ load_dotenv()
 # 모델 정의
 #model = OllamaLLM(model="llama3.2-vision")
 #model = OllamaLLM(model="llama3.2")
-model = ChatOpenAI(model="gpt-4o",api_key="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")
+model = ChatOpenAI(model="gpt-4o")
 
 
 
