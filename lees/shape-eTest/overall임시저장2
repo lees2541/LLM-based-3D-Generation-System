@@ -36,39 +36,17 @@ format_instructions = parser.get_format_instructions()
 
 prompt = PromptTemplate(
     template=(
-        "You are a professional interior designer.\n"
-        "You design realistic furniture layouts for various types of rooms based on their intended function (e.g., classroom, office, bedroom, etc).\n"
+        "You are an interior designer.\n"
+        "You know where the furniture must be placed.\n"
         "{format_instructions}\n"
         "User Query: {query}\n"
-        "\n"
-        "Each room is represented as a 2D grid (for example, 30 * 30).\n"
-        "If scale of the room is not specified, choose the most formal size in meters.\n"
-        "Your task is to place appropriate furniture in the space, considering the room’s function, layout logic, and human usability.\n"
-        "\n"
-        "🔒 Design constraints:\n"
-        "- Do not place objects using mathematical patterns such as diagonal lines (x = y), perfect vertical or horizontal symmetry, or arithmetic sequences.\n"
-        "- Avoid placing all objects in one corner or clustered area.\n"
-        "- Avoid using completely random coordinates.\n"
-        "- Spread objects in reasonable position"
-        "\n"
-        "🎯 Spatial logic examples:\n"
-        "- Desks in classrooms are typically arranged in rows or clusters.\n"
-        "- Beds in bedrooms are placed against walls.\n"
-        "- Whiteboards are usually placed on one main wall, opposite to student seating.\n"
-        "- Doors should be located at logical entrances, usually along the edges or corners.\n"
-        "\n"
-        "🪑 Furniture placement rules:\n"
-        "- Include multiple instances of common objects (e.g., desks, chairs), up to 20 per type.\n"
-        "- Each object must have:\n"
-        "  • A unique name\n"
-        "  • Distinct X and Y coordinates within the grid\n"
-        "  • A short, place-relevant description (mentioning the room type and the object’s appearance)\n"
-        "- Doors must be included and positioned near walls or entrances.\n"
-        "\n"
-        "🧠 Use spatial logic instead of randomness or symmetry. The layout should look intentional and usable.\n"
-        "\n"
-        "After generating the layout, review and revise it if the objects are in appropriate place.\n"
-        "Return the final layout strictly in JSON format as instructed above."
+        "Please set the variety of furniture evenly spread placed in the given scale of 2D grid.Avoid placing objects along a single diagonal line such as x=y.\n"
+        "Doors should be included.\n"
+        "Please respond with multiple instances of common furniture (such as desks and chairs) if they typically occur "
+        "several times in a given place environment. The maximum number of same objects is 20. Include various other given place items as well, making sure each "
+        "object has unique coordinates within a given scale of a grid. Provide the response strictly in JSON format.\n"
+        "Please spread the furniture and doors evenly across the space, assigning unique names, coordinates, and a detailed description for each object.\n"
+        "After generating the furniture layout, please review and revise it if necessary, and check if the objects are placed only diagonally. Then return the final corrected JSON."
     ),
     input_variables=["query"],
     partial_variables={"format_instructions": format_instructions},
@@ -95,7 +73,7 @@ def safe_model_invoke(query):
         print("\u26a0\ufe0f 모델 원본 응답:", output)
         return None
 
-query_text = ("I want you to create inside of cathedral. Please set the objects of the room.")
+query_text = ("I have provided you a grid space with scale of 30 * 30 representing a formal inside of a school. Please set the objects of the room ")
 parsed_output = safe_model_invoke(query_text)
 
 if parsed_output is not None:
@@ -132,7 +110,7 @@ if parsed_output is not None:
     block_end = time.time()
     print(f"\u2705 그래프 이미지 저장 완료: {output_image_path}")
 
-device = torch.device('cuda:4' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda:6' if torch.cuda.is_available() else 'cpu')
 xm = load_model('transmitter', device=device)
 shap_e_model = load_model('text300M', device=device)
 diffusion = diffusion_from_config(load_config('diffusion'))
@@ -212,7 +190,7 @@ def shift_face_indices(faces, offset):
         shifted.append('f ' + ' '.join(new_indices))
     return shifted
 
-def generate_floor_and_walls(room_width, room_height, wall_height=5.0):
+def generate_floor_and_walls(room_width, room_height, wall_height=10.0):
     vertices = []
     faces = []
     floor_verts = [(0, 0, 0), (room_width, 0, 0), (room_width, room_height, 0), (0, room_height, 0)]
